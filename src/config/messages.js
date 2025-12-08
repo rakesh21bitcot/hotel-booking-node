@@ -1,0 +1,16 @@
+export const MESSAGES = {
+  USER_EXISTS: 'User already exists',
+  USER_CREATED: 'User created successfully',
+  LOGIN_SUCCESS: 'Login successful',
+  INVALID_CREDENTIALS: 'Invalid email or password',
+  UNAUTHORIZED: 'Access denied, invalid token',
+  ALL_USER: 'All users',
+  USER_NOT_FOUND: 'User not found',
+  USER_FOUND: 'User found',
+  HOTEL_LIST: 'Hotels fetched successfully',
+  HOTEL_LIST_ERROR: 'Error fetching hotels',
+  HOTEL_DETAILS_FOUND: 'Hotel details fetched successfully',
+  HOTEL_NOT_FOUND: 'Hotel not found',
+  HOTEL_ROOMS_FOUND: 'Hotel rooms fetched successfully',
+  HOTEL_ROOMS_NOT_FOUND: 'Hotel rooms not found',
+};
