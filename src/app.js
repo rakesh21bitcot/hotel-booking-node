@@ -3,6 +3,9 @@ import dotenv from "dotenv";
 import authRoutes from './modules/auth/auth.routes.js';
 import userRoutes from './modules/user/user.routes.js';
 import hotelRoutes from './modules/hotel/hotel.routes.js';
+import profileRoutes from './modules/profile/profile.routes.js';
+import settingsRoutes from './modules/settings/settings.routes.js';
+import bookingRoutes from './modules/booking/booking.routes.js';
 
 dotenv.config();
 
@@ -16,8 +19,9 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/', authRoutes);
 app.use('/', userRoutes);
 app.use('/', hotelRoutes);
-
-
+app.use('/', profileRoutes);
+app.use('/', settingsRoutes);
+app.use('/', bookingRoutes);
 
 
 export default app;

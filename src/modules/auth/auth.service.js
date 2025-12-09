@@ -4,7 +4,7 @@ import nodemailer from "nodemailer";
 
 const SALT_ROUNDS = 10;
 export const AuthService = {
-  async signup({ name, email, password }) {
+  async signup({ firstName, lastName, email, password }) {
     const existUser = await UserModel.findbyEmail(email);
     if (existUser) {
       const err = new Error("User already exists");
@@ -14,7 +14,8 @@ export const AuthService = {
     }
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     const user = await UserModel.create({
-      name,
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
     });
@@ -45,7 +46,7 @@ export const AuthService = {
       service: "gmail",
       auth: {
         user: email, // Replace with your email
-        pass: "tudh mljq kzsb eoyr", // Replace with your email password or app password
+        pass: "ResetPassword@123", // Replace with your email password or app password
       },
     });
 
@@ -59,7 +60,6 @@ export const AuthService = {
         <p>If you did not request this, please ignore this email.</p>
       `,
     };
-
     await transporter.sendMail(mailOptions);
   },
 
@@ -96,5 +96,35 @@ export const AuthService = {
     }
 
     return { message: "Nikle" };
+  },
+
+  /**
+   * Change password for logged-in user
+   * @param {string} userId
+   * @param {string} currentPassword
+   * @param {string} newPassword
+   * @param {string} confirmPassword
+   */
+  async changePassword(userId, currentPassword, newPassword, confirmPassword) {
+    const user = await UserModel.findbyId(userId);
+    if (!user) {
+      const err = new Error('User not found');
+      err.status = 404;
+      throw err;
+    }
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      const err = new Error('Current password is incorrect');
+      err.status = 401;
+      throw err;
+    }
+    if (newPassword !== confirmPassword) {
+      const err = new Error("New password and confirm password don't match");
+      err.status = 422;
+      throw err;
+    }
+    const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await UserModel.updateById(userId, { password: hashed });
+    return { message: 'Password changed successfully' };
   },
 };

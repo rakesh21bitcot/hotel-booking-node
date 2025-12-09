@@ -1,13 +1,16 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
-    "name" TEXT NOT NULL,
+    "firstName" TEXT NOT NULL,
+    "lastName" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "profileImage" TEXT ? NULL,
     "password" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "User_settingsId_fkey" FOREIGN KEY ("settingsId") REFERENCES "Settings"("id")
 );
 
 -- CreateIndex

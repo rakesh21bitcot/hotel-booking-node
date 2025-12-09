@@ -8,14 +8,34 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int       @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String    @unique
+  password     String
+  profileImage String?
+  settings     Settings?
+  bookings     Booking[] // <-- add this line!
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@map("User")
+}
+
+model Booking {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  hotelId          Int
+  status           String   @default("confirmed")
+  paymentStatus    String?
+  paymentReference String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  // ... any other fields
+
+  @@map("Booking")
 }
 
 model PasswordResetToken {
@@ -25,7 +45,21 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
   expiresAt DateTime
 
-   @@unique([email, token])
-   @@map("PasswordResetToken")
+  @@unique([email, token])
+  @@map("PasswordResetToken")
 }
 
+model Settings {
+  id                  Int     @id @default(autoincrement())
+  userId              Int     @unique
+  enableNotifications Boolean @default(false)
+  emailNotifications  Boolean @default(false)
+  pushNotifications   Boolean @default(false)
+  bookingReminders    Boolean @default(false)
+  newsletter          Boolean @default(false)
+  specialOffers       Boolean @default(false)
+  marketingEmails     Boolean @default(false)
+  user                User    @relation(fields: [userId], references: [id])
+
+  @@map("Settings")
+}
