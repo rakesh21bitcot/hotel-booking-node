@@ -4,12 +4,20 @@ import { v4 as uuidv4 } from "uuid";
 export const UserModel = {
   create: (data) => prisma.user.create({ data }),
   findbyEmail: (email) => prisma.user.findUnique({ where: { email } }),
-  findbyId: (id) => prisma.user.findUnique({ where: { id } }),
+  findbyId: (id) => {
+    const intId = Number(id);
+    if (!Number.isFinite(intId)) return null;
+    return prisma.user.findUnique({ where: { id: intId } });
+  },
   find: () => prisma.user.findMany(),
-  deletebyId: (id) => prisma.user.delete({ where: { id } }),
+  deletebyId: (id) => {
+    const intId = Number(id);
+    if (!Number.isFinite(intId)) return null;
+    return prisma.user.delete({ where: { id: intId } });
+  },
   updateById: (id, updateData) =>
     prisma.user.update({
-      where: { id: id },
+      where: { id: Number(id) },
       data: updateData,
     }),
   

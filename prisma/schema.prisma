@@ -14,8 +14,8 @@ model User {
   email        String    @unique
   password     String
   profileImage String?
-  settings     Settings?
-  bookings     Booking[] // <-- add this line!
+  settings     Json?
+  bookings     Booking[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -47,19 +47,4 @@ model PasswordResetToken {
 
   @@unique([email, token])
   @@map("PasswordResetToken")
-}
-
-model Settings {
-  id                  Int     @id @default(autoincrement())
-  userId              Int     @unique
-  enableNotifications Boolean @default(false)
-  emailNotifications  Boolean @default(false)
-  pushNotifications   Boolean @default(false)
-  bookingReminders    Boolean @default(false)
-  newsletter          Boolean @default(false)
-  specialOffers       Boolean @default(false)
-  marketingEmails     Boolean @default(false)
-  user                User    @relation(fields: [userId], references: [id])
-
-  @@map("Settings")
 }

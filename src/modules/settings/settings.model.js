@@ -1,28 +1,44 @@
-// Temporary in-memory store for demonstration; replace with DB calls in production.
-const settingsStore = new Map(); // key = userId
+import { prisma } from "../../config/db.js";
+
+const defaultSettings = {
+  enableNotifications: false,
+  emailNotifications: false,
+  pushNotifications: false,
+  bookingReminders: false,
+  newsletter: false,
+  specialOffers: false,
+  marketingEmails: false,
+};
+
+let settingsColumnEnsured = false;
+
+async function ensureSettingsColumn() {
+  if (settingsColumnEnsured) return;
+  await prisma.$executeRawUnsafe(
+    'ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "settings" JSONB DEFAULT \'{}\'::jsonb'
+  );
+  settingsColumnEnsured = true;
+}
 
 export const SettingsModel = {
-  getByUserId(userId) {
-    if (!settingsStore.has(userId)) {
-      // Return default settings if not found
-      return {
-        userId,
-        enableNotifications: false,
-        emailNotifications: false,
-        pushNotifications: false,
-        bookingReminders: false,
-        newsletter: false,
-        specialOffers: false,
-        marketingEmails: false,
-      };
-    }
-    return settingsStore.get(userId);
+  async getByUserId(userId) {
+    await ensureSettingsColumn();
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { settings: true },
+    });
+    if (!user) return null;
+    return { ...defaultSettings, ...(user.settings || {}) };
   },
 
-  updateByUserId(userId, update) {
-    const existing = SettingsModel.getByUserId(userId);
-    const updated = { ...existing, ...update, userId };
-    settingsStore.set(userId, updated);
-    return updated;
-  }
+  async updateByUserId(userId, update) {
+    await ensureSettingsColumn();
+    const current = await this.getByUserId(userId);
+    const merged = { ...defaultSettings, ...(current || {}), ...update };
+    await prisma.user.update({
+      where: { id: userId },
+      data: { settings: merged },
+    });
+    return merged;
+  },
 };
