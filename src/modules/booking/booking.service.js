@@ -20,7 +20,7 @@ export const BookingService = {
       userId: userIdInt,
       hotelId: hotelIdStr,
       roomId,
-      status: 'booked',
+      status: 'confirmed',
       paymentStatus: 'pending',
     });
     return booking;

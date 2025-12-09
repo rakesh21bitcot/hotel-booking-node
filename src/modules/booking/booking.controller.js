@@ -4,7 +4,7 @@ import { BookingService } from './booking.service.js';
 export const BookingController = {
   async createBooking(req, res, next) {
     try {
-      const userId = req.user?.id || req.body.userId;
+      const userId = req.body.userId;
       const { hotelId, roomId } = req.body;
       if (!userId) throw new Error('User id is required');
       if (!hotelId) throw new Error('Hotel id is required');
