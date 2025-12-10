@@ -5,7 +5,8 @@ import { HotelService } from "./hotel.service.js";
 export const HotelController = {
   async list(req, res, next) {
     try {
-      const result = await HotelService.getHotels(req.hotelFilters || {});
+      const userId = req.user?.id ?? req.query.userId;
+      const result = await HotelService.getHotels(req.hotelFilters || {}, userId);
       return successResponse(res, MESSAGES.HOTEL_LIST, result);
     } catch (err) {
       return errorResponse(res, MESSAGES.HOTEL_LIST_ERROR, err.message, err.status);

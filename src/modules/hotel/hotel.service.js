@@ -318,7 +318,7 @@ export const HotelService = {
     }
   },
 
-  async getHotels(filters = {}) {
+  async getHotels(filters = {}, userId) {
     const {
       location,
       minRating,
@@ -334,6 +334,13 @@ export const HotelService = {
     const pageNumber = toPositiveNumber(page, 1);
     const limitNumber = toPositiveNumber(limit, 10);
 
+    const userIdInt =
+      userId === undefined || userId === null || userId === ''
+        ? null
+        : Number.isFinite(Number(userId))
+          ? Number(userId)
+          : null;
+
     const { whereClause, params } = buildWhereClause({ location, minRating, maxRating, isFeatured });
 
     // Remove ORDER BY from SQL query since we'll sort after computing prices
@@ -344,9 +351,25 @@ export const HotelService = {
 
     const normalizedHotels = hotels.map((hotel) => normalizeHotelRow(hotel));
 
+    // Fetch favourite hotel ids for the user (if provided)
+    let favouriteIds = new Set();
+    if (userIdInt !== null) {
+      try {
+        const favourites = await prisma.favourite.findMany({
+          where: { userId: userIdInt },
+          select: { hotelId: true },
+        });
+        favouriteIds = new Set(favourites.map((f) => String(f.hotelId)));
+      } catch (err) {
+        // If favourites table is missing or query fails, continue without flagging favourites
+        favouriteIds = new Set();
+      }
+    }
+
     const hotelsWithPrice = normalizedHotels.map((hotel) => ({
       ...hotel,
       pricing: computePriceStats(hotel),
+      isFavourite: favouriteIds.has(String(hotel.id)),
     }));
 
     const priceFiltered = filterByPrice(
