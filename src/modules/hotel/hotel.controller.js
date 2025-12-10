@@ -30,4 +30,14 @@ export const HotelController = {
       return errorResponse(res, MESSAGES.HOTEL_ROOMS_NOT_FOUND, err.message, err.status);
     }
   },
+
+  async getRoomById(req, res, next) {
+    try {
+      const { hotelId, roomId } = req.params;
+      const room = await HotelService.getRoomById(hotelId, roomId);
+      return successResponse(res, MESSAGES.ROOM_DETAILS_FOUND, room);
+    } catch (err) {
+      return errorResponse(res, MESSAGES.ROOM_NOT_FOUND, err.message, err.status);
+    }
+  },
 };

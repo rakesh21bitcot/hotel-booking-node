@@ -7,6 +7,7 @@ export const hotelFilterSchema = Joi.object({
   minRating: Joi.number().min(0).max(5),
   maxRating: Joi.number().min(0).max(5),
   isFeatured: Joi.boolean(),
+  sortBy: Joi.string().valid('featured', 'price_low_to_high', 'price_high_to_low', 'highest_rating').default('featured'),
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(10),
 }).custom((value, helpers) => {

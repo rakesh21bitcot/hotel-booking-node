@@ -18,7 +18,7 @@ function validateFilters(req, res, next) {
 
 router.get("/hotels", validateFilters, HotelController.list);
 router.get("/hotel/:id", validateFilters, HotelController.getHotelById);
-router.get("/hotel/:id/rooms", validateFilters, HotelController.getHotelRooms);
+router.get("/hotel/:hotelId/:roomId", HotelController.getRoomById);
 
 export default router;
 

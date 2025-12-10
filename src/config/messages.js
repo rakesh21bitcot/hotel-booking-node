@@ -13,4 +13,6 @@ export const MESSAGES = {
   HOTEL_NOT_FOUND: 'Hotel not found',
   HOTEL_ROOMS_FOUND: 'Hotel rooms fetched successfully',
   HOTEL_ROOMS_NOT_FOUND: 'Hotel rooms not found',
+  ROOM_DETAILS_FOUND: 'Room details fetched successfully',
+  ROOM_NOT_FOUND: 'Room not found',
 };

@@ -130,6 +130,69 @@ function filterByPrice(hotels, minPrice, maxPrice) {
   });
 }
 
+function sortHotels(hotels, sortBy) {
+  const sorted = [...hotels];
+
+  switch (sortBy) {
+    case 'featured':
+      // Featured hotels first (is_featured = true), then by rating
+      sorted.sort((a, b) => {
+        const aFeatured = a.is_featured === true ? 1 : 0;
+        const bFeatured = b.is_featured === true ? 1 : 0;
+        if (aFeatured !== bFeatured) {
+          return bFeatured - aFeatured; // Featured first
+        }
+        // If both have same featured status, sort by rating
+        const aRating = a.rating || 0;
+        const bRating = b.rating || 0;
+        return bRating - aRating;
+      });
+      break;
+
+    case 'price_low_to_high':
+      // Sort by minimum room price (ascending)
+      sorted.sort((a, b) => {
+        const aPrice = a.pricing?.minRoomPrice ?? a.price ?? Infinity;
+        const bPrice = b.pricing?.minRoomPrice ?? b.price ?? Infinity;
+        return aPrice - bPrice;
+      });
+      break;
+
+    case 'price_high_to_low':
+      // Sort by minimum room price (descending)
+      sorted.sort((a, b) => {
+        const aPrice = a.pricing?.minRoomPrice ?? a.price ?? 0;
+        const bPrice = b.pricing?.minRoomPrice ?? b.price ?? 0;
+        return bPrice - aPrice;
+      });
+      break;
+
+    case 'highest_rating':
+      // Sort by rating (descending)
+      sorted.sort((a, b) => {
+        const aRating = a.rating || 0;
+        const bRating = b.rating || 0;
+        return bRating - aRating;
+      });
+      break;
+
+    default:
+      // Default: featured first
+      sorted.sort((a, b) => {
+        const aFeatured = a.is_featured === true ? 1 : 0;
+        const bFeatured = b.is_featured === true ? 1 : 0;
+        if (aFeatured !== bFeatured) {
+          return bFeatured - aFeatured;
+        }
+        const aRating = a.rating || 0;
+        const bRating = b.rating || 0;
+        return bRating - aRating;
+      });
+  }
+
+  return sorted;
+}
+
 function paginate(hotels, page, limit) {
   const total = hotels.length;
   const start = (page - 1) * limit;
@@ -192,6 +255,69 @@ export const HotelService = {
     }
   },
 
+  async getRoomById(hotelId, roomId) {
+    try {
+      if (!hotelId) {
+        const err = new Error("Hotel ID is required");
+        err.name = "ValidationError";
+        err.status = 400;
+        throw err;
+      }
+
+      if (!roomId) {
+        const err = new Error("Room ID is required");
+        err.name = "ValidationError";
+        err.status = 400;
+        throw err;
+      }
+
+      if (typeof roomId !== 'string' || roomId.trim() === '') {
+        const err = new Error("Room ID must be a non-empty string");
+        err.name = "ValidationError";
+        err.status = 400;
+        throw err;
+      }
+
+      // Get the specific hotel
+      const [hotel] = await prisma.$queryRawUnsafe('SELECT id, name, "rooms" FROM "hotels" WHERE id = $1', hotelId);
+      
+      if (!hotel) {
+        const err = new Error("Hotel not found");
+        err.name = "NotFoundError";
+        err.status = 404;
+        throw err;
+      }
+
+      // Parse and find the room
+      const rooms = safeParseJSON(hotel.rooms);
+      if (!Array.isArray(rooms)) {
+        const err = new Error("Room not found");
+        err.name = "NotFoundError";
+        err.status = 404;
+        throw err;
+      }
+
+      const room = rooms.find((r) => r && r.id === roomId);
+      if (!room) {
+        const err = new Error("Room not found");
+        err.name = "NotFoundError";
+        err.status = 404;
+        throw err;
+      }
+
+      // Return room with hotel information
+      return {
+        ...room,
+        hotel: {
+          id: hotel.id,
+          name: hotel.name,
+        },
+      };
+    } catch (err) {
+      throw err;
+    }
+  },
+
   async getHotels(filters = {}) {
     const {
       location,
@@ -200,6 +326,7 @@ export const HotelService = {
       minPrice,
       maxPrice,
       isFeatured,
+      sortBy = 'featured',
       page,
       limit,
     } = filters;
@@ -209,8 +336,9 @@ export const HotelService = {
 
     const { whereClause, params } = buildWhereClause({ location, minRating, maxRating, isFeatured });
 
+    // Remove ORDER BY from SQL query since we'll sort after computing prices
     const hotels = await prisma.$queryRawUnsafe(
-      `SELECT * FROM "hotels" ${whereClause} ORDER BY "rating" DESC NULLS LAST`,
+      `SELECT * FROM "hotels" ${whereClause}`,
       ...params
     );
 
@@ -227,7 +355,10 @@ export const HotelService = {
       maxPrice
     );
 
-    return paginate(priceFiltered, pageNumber, limitNumber);
+    // Apply sorting before pagination
+    const sortedHotels = sortHotels(priceFiltered, sortBy);
+
+    return paginate(sortedHotels, pageNumber, limitNumber);
   },
 };
 
