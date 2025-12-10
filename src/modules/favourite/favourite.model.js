@@ -12,10 +12,19 @@ async function ensureFavouriteTable() {
       "hotelId" TEXT NOT NULL,
       "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       CONSTRAINT favourite_user_hotel_unique UNIQUE ("userId", "hotelId")
-    );
-
-    ALTER TABLE "Favourite" ADD CONSTRAINT favourite_user_hotel_unique UNIQUE ("userId", "hotelId");
+    )
   `);
+  await prisma.$executeRawUnsafe(
+    `DO $$
+     BEGIN
+       IF NOT EXISTS (
+         SELECT 1 FROM pg_constraint
+         WHERE conname = 'favourite_user_hotel_unique'
+       ) THEN
+         ALTER TABLE "Favourite" ADD CONSTRAINT favourite_user_hotel_unique UNIQUE ("userId", "hotelId");
+       END IF;
+     END $$;`
+  );
 
   ensuredFavouriteTable = true;
 }

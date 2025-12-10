@@ -16,6 +16,7 @@ model User {
   profileImage String?
   settings     Json?
   bookings     Booking[]
+  favourites   Favourite[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -27,9 +28,18 @@ model Booking {
   userId           Int
   hotelId          String
   roomId           String?
+  checkIn          DateTime
+  checkOut         DateTime
+  guestCount       Int
+  firstName        String
+  lastName         String
+  email            String
+  phoneNumber      String
+  specialRequest   String?
   status           String   @default("confirmed")
   paymentStatus    String?
   paymentReference String?
+  bookingReference String?  @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -48,4 +58,16 @@ model PasswordResetToken {
 
   @@unique([email, token])
   @@map("PasswordResetToken")
+}
+
+model Favourite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  hotelId   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, hotelId])
+  @@map("Favourite")
 }

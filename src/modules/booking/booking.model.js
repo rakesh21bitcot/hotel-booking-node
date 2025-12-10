@@ -25,18 +25,28 @@ async function ensureBookingTable() {
       "bookingReference" TEXT UNIQUE,
       "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-    );
-
-    ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkIn" TIMESTAMP WITH TIME ZONE;
-    ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkOut" TIMESTAMP WITH TIME ZONE;
-    ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "guestCount" INTEGER DEFAULT 1;
-    ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "firstName" TEXT DEFAULT '';
-    ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "lastName" TEXT DEFAULT '';
-    ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "email" TEXT DEFAULT '';
-    ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "phoneNumber" TEXT DEFAULT '';
-    ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "specialRequest" TEXT;
-    ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "bookingReference" TEXT UNIQUE;
+    )
   `);
+
+  // Ensure columns exist (run individually to avoid multi-statement errors in Supabase)
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkIn" TIMESTAMP WITH TIME ZONE`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkOut" TIMESTAMP WITH TIME ZONE`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "guestCount" INTEGER DEFAULT 1`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "firstName" TEXT DEFAULT ''`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "lastName" TEXT DEFAULT ''`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "email" TEXT DEFAULT ''`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "phoneNumber" TEXT DEFAULT ''`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "specialRequest" TEXT`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "bookingReference" TEXT UNIQUE`);
+
+  // Backfill any older rows that were created before these columns existed
+  await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "checkIn" = COALESCE("checkIn", "createdAt") WHERE "checkIn" IS NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "checkOut" = COALESCE("checkOut", "createdAt" + interval '1 day') WHERE "checkOut" IS NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "guestCount" = COALESCE("guestCount", 1) WHERE "guestCount" IS NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "firstName" = COALESCE("firstName", '') WHERE "firstName" IS NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "lastName" = COALESCE("lastName", '') WHERE "lastName" IS NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "email" = COALESCE("email", '') WHERE "email" IS NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "phoneNumber" = COALESCE("phoneNumber", '') WHERE "phoneNumber" IS NULL`);
 
   ensuredBookingTable = true;
 }
