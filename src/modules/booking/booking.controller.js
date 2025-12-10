@@ -4,13 +4,12 @@ import { BookingService } from './booking.service.js';
 export const BookingController = {
   async createBooking(req, res, next) {
     try {
-      const userId = req.body.userId;
-      const { hotelId, roomId } = req.body;
-      if (!userId) throw new Error('User id is required');
-      if (!hotelId) throw new Error('Hotel id is required');
-      if (!roomId) throw new Error('Room id is required');
-
-      const booking = await BookingService.createBooking(userId, hotelId, roomId);
+      const { userId, hotelId, roomId, status, paymentStatus } = req.body;
+      
+      const booking = await BookingService.createBooking(userId, hotelId, roomId, {
+        status,
+        paymentStatus,
+      });
       return successResponse(res, 'Booking created', { booking }, 201);
     } catch (err) {
       return next(err);
