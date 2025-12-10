@@ -5,6 +5,6 @@ import { authenticate } from "../../middleware/auth.middleware.js";
 const router = Router();
 
 router.get("/profile/:id", authenticate, ProfileController.getProfileById);
-router.put("/profile/:id", authenticate, ProfileController.updateProfileById);
+router.put("/update-profile/:id", authenticate, ProfileController.updateProfileById);
 
 export default router;
