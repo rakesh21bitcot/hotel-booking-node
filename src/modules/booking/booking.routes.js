@@ -7,6 +7,7 @@ const router = Router();
 router.post('/create-booking', authenticate, BookingController.createBooking);
 router.patch('/booking/:id/cancel', authenticate, BookingController.cancelBooking);
 router.get('/mybookings', authenticate, BookingController.getMyBookings);
+router.get('/mybookings/:id', authenticate, BookingController.getMyBookingById);
 router.get('/hotel/:hotelId/bookings', authenticate, BookingController.getBookingsByHotel);
 
 export default router;
