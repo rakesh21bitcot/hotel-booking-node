@@ -7,6 +7,7 @@ import profileRoutes from './modules/profile/profile.routes.js';
 import settingsRoutes from './modules/settings/settings.routes.js';
 import bookingRoutes from './modules/booking/booking.routes.js';
 import favouriteRoutes from './modules/favourite/favourite.routes.js';
+import contactRoutes from './modules/contact/contact.routes.js';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use('/', profileRoutes);
 app.use('/', settingsRoutes);
 app.use('/', bookingRoutes);
 app.use('/', favouriteRoutes);
+app.use('/', contactRoutes);
 
 
 export default app;
