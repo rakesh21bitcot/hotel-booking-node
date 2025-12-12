@@ -8,6 +8,7 @@ import settingsRoutes from './modules/settings/settings.routes.js';
 import bookingRoutes from './modules/booking/booking.routes.js';
 import favouriteRoutes from './modules/favourite/favourite.routes.js';
 import contactRoutes from './modules/contact/contact.routes.js';
+import { notFoundHandler, errorHandler } from './middleware/error.middleware.js';
 
 dotenv.config();
 
@@ -27,5 +28,8 @@ app.use('/', bookingRoutes);
 app.use('/', favouriteRoutes);
 app.use('/', contactRoutes);
 
+// 404 and error handling
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

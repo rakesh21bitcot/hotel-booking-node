@@ -249,7 +249,20 @@ export const HotelService = {
         throw err;
       }
       const [hotel] = await prisma.$queryRawUnsafe('SELECT * FROM "hotels" WHERE id = $1', id);
-      return hotel.rooms;
+      if (!hotel) {
+        const err = new Error("Hotel not found");
+        err.name = "NotFoundError";
+        err.status = 404;
+        throw err;
+      }
+      const rooms = safeParseJSON(hotel.rooms);
+      if (!rooms || !Array.isArray(rooms)) {
+        const err = new Error("Rooms not found");
+        err.name = "NotFoundError";
+        err.status = 404;
+        throw err;
+      }
+      return rooms;
     } catch (err) {
       throw err;
     }

@@ -18,6 +18,9 @@ export const FavouriteService = {
 
     const hotelIdStr = String(hotelId);
 
+    // Ensure hotel exists before creating favourite
+    await HotelService.getHotelById(hotelIdStr);
+
     const existing = await FavouriteModel.findByUserAndHotel(userId, hotelIdStr);
     if (existing) return existing;
 
@@ -64,7 +67,13 @@ export const FavouriteService = {
     }
 
     const hotelIdStr = String(hotelId);
-    await FavouriteModel.remove(userId, hotelIdStr);
+    const result = await FavouriteModel.remove(userId, hotelIdStr);
+    if (!result || result.count === 0) {
+      const err = new Error('Favourite not found');
+      err.name = 'NotFoundError';
+      err.status = 404;
+      throw err;
+    }
     return { success: true };
   },
 };

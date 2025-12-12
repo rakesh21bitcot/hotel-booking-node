@@ -214,7 +214,15 @@ export const BookingService = {
     return booking;
   },
   async cancelBooking(id) {
-    const canceled = await BookingModel.cancel(id);
+    const bookingId = toIntOrThrow(id, 'Booking id');
+    const existing = await BookingModel.findById(bookingId);
+    if (!existing) {
+      const err = new Error('Booking not found');
+      err.name = 'NotFoundError';
+      err.status = 404;
+      throw err;
+    }
+    const canceled = await BookingModel.cancel(bookingId);
     return canceled;
   },
   async getBookingByIdForUser(id, userId) {

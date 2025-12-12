@@ -10,5 +10,6 @@ export function errorHandler(err, req, res, next) {
   const status = err.status || 500;
   const message = err.message || 'Internal Server Error';
   const error = err.name || 'Error';
-  return errorResponse(res, message, error, status);
+  const errorCode = err.code || err.name || status;
+  return errorResponse(res, message, error, status, errorCode);
 }
