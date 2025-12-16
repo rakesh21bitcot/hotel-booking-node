@@ -150,19 +150,19 @@ function sortHotels(hotels, sortBy) {
       break;
 
     case 'price_low_to_high':
-      // Sort by minimum room price (ascending)
+      // Sort by hotel price (ascending)
       sorted.sort((a, b) => {
-        const aPrice = a.pricing?.minRoomPrice ?? a.price ?? Infinity;
-        const bPrice = b.pricing?.minRoomPrice ?? b.price ?? Infinity;
+        const aPrice = a.price ?? Infinity;
+        const bPrice = b.price ?? Infinity;
         return aPrice - bPrice;
       });
       break;
 
     case 'price_high_to_low':
-      // Sort by minimum room price (descending)
+      // Sort by hotel price (descending)
       sorted.sort((a, b) => {
-        const aPrice = a.pricing?.minRoomPrice ?? a.price ?? 0;
-        const bPrice = b.pricing?.minRoomPrice ?? b.price ?? 0;
+        const aPrice = a.price ?? 0;
+        const bPrice = b.price ?? 0;
         return bPrice - aPrice;
       });
       break;
