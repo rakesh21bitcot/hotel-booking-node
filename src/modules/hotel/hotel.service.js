@@ -1,6 +1,6 @@
 import { prisma } from "../../config/db.js";
 
-function buildWhereClause({ location, minRating, maxRating, isFeatured }) {
+function buildWhereClause({ location, maxRating, isFeatured }) {
   const conditions = [];
   const params = [];
   let index = 1;
@@ -23,14 +23,8 @@ function buildWhereClause({ location, minRating, maxRating, isFeatured }) {
     index += 1;
   }
 
-  if (minRating !== undefined) {
-    conditions.push(`"rating" >= $${index}`);
-    params.push(minRating);
-    index += 1;
-  }
-
   if (maxRating !== undefined) {
-    conditions.push(`"rating" <= $${index}`);
+    conditions.push(`"rating" >= $${index}`);
     params.push(maxRating);
     index += 1;
   }
@@ -335,7 +329,6 @@ export const HotelService = {
     const {
       location,
       minRating,
-      maxRating,
       minPrice,
       maxPrice,
       isFeatured,
@@ -354,7 +347,7 @@ export const HotelService = {
           ? Number(userId)
           : null;
 
-    const { whereClause, params } = buildWhereClause({ location, minRating, maxRating, isFeatured });
+    const { whereClause, params } = buildWhereClause({ location, minRating, isFeatured });
 
     // Remove ORDER BY from SQL query since we'll sort after computing prices
     const hotels = await prisma.$queryRawUnsafe(
