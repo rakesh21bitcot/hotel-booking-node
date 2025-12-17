@@ -46,6 +46,7 @@ model Booking {
   paymentStatus    String?
   paymentReference String?
   bookingReference String?  @unique
+  totalPrice       Int      @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

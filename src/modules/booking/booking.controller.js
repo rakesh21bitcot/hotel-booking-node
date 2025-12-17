@@ -17,6 +17,7 @@ export const BookingController = {
         specialRequest,
         status,
         paymentStatus,
+        totalPrice,
       } = req.body;
       const userId = req.user?.id ?? req.body.userId;
 
@@ -34,6 +35,7 @@ export const BookingController = {
         specialRequest,
         status,
         paymentStatus,
+        totalPrice,
       });
       return successResponse(
         res,

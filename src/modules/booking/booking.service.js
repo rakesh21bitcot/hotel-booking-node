@@ -16,6 +16,7 @@ const validBookingFields = {
   status: 'string',
   paymentStatus: 'string',
   bookingReference: 'string',
+  totalPrice: 'number',
 };
 
 function validateBookingData(data) {
@@ -33,6 +34,7 @@ function validateBookingData(data) {
     'lastName',
     'email',
     'phoneNumber',
+    'totalPrice',
   ];
   for (const field of requiredFields) {
     const value = data[field];
@@ -168,6 +170,7 @@ export const BookingService = {
     specialRequest,
     status,
     paymentStatus,
+    totalPrice,
   } = {}) {
     const bookingData = {
       userId,
@@ -183,12 +186,14 @@ export const BookingService = {
       specialRequest,
       status: status || 'confirmed',
       paymentStatus: paymentStatus || 'pending',
+      totalPrice,
     };
 
     validateBookingData(bookingData);
 
     const userIdInt = toIntOrThrow(userId, 'User id');
     const guestCountInt = toIntOrThrow(guestCount, 'Guest count');
+    const totalPriceInt = toIntOrThrow(totalPrice, 'Total price');
     const hotelIdStr = String(hotelId);
     const roomIdStr = roomId ? String(roomId) : null;
     const checkInDate = new Date(checkIn);
@@ -210,6 +215,7 @@ export const BookingService = {
       status: bookingData.status,
       paymentStatus: bookingData.paymentStatus,
       bookingReference,
+      totalPrice: totalPriceInt,
     });
     return booking;
   },
