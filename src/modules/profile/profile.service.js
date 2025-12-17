@@ -7,7 +7,9 @@ const validProfileFields = {
   gender: 'string',
   dateOfBirth: 'string',
   state: 'string',
+  city: 'string',
   nationality: 'string',
+  phone: 'string',
   profileImage: 'string', // optional in schema but validated if provided
 };
 
