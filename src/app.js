@@ -16,24 +16,33 @@ dotenv.config();
 const app = express();
 
 // CORS configuration
-const allowedOrigins = process.env.FRONTEND_URL 
-  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-  : ['http://localhost:3000'];
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://localhost:3000',
+  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) : []),
+  ...(process.env.FRONTEND_URL_PROD ? process.env.FRONTEND_URL_PROD.split(',').map(url => url.trim()) : []),
+  ...(process.env.FRONTEND_URL_LOCAL ? process.env.FRONTEND_URL_LOCAL.split(',').map(url => url.trim()) : []),
+];
 
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // In development, allow all localhost origins
+      if (process.env.NODE_ENV !== 'production' && origin && origin.includes('localhost')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
 app.use(cors(corsOptions));
