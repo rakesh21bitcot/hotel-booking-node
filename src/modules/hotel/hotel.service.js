@@ -286,7 +286,7 @@ export const HotelService = {
       }
 
       // Get the specific hotel
-      const [hotel] = await prisma.$queryRawUnsafe('SELECT id, name, "rooms" FROM "hotels" WHERE id = $1', hotelId);
+      const [hotel] = await prisma.$queryRawUnsafe('SELECT id, name, location, rating, "reviewCount", "rooms" FROM "hotels" WHERE id = $1', hotelId);
       
       if (!hotel) {
         const err = new Error("Hotel not found");
@@ -318,6 +318,9 @@ export const HotelService = {
         hotel: {
           id: hotel.id,
           name: hotel.name,
+          rating: hotel.rating,
+          reviewCount: hotel.reviewCount,
+          location: hotel.location
         },
       };
     } catch (err) {
