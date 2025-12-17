@@ -15,6 +15,7 @@ async function ensureBookingTable() {
       "checkOut" TIMESTAMP WITH TIME ZONE NOT NULL,
       "guestCount" INTEGER NOT NULL,
       "firstName" TEXT NOT NULL,
+      "totalPrice" INTEGER NOT NULL,
       "lastName" TEXT NOT NULL,
       "email" TEXT NOT NULL,
       "phoneNumber" TEXT NOT NULL,
@@ -32,6 +33,7 @@ async function ensureBookingTable() {
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkIn" TIMESTAMP WITH TIME ZONE`);
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkOut" TIMESTAMP WITH TIME ZONE`);
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "guestCount" INTEGER DEFAULT 1`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "totalPrice" INTEGER DEFAULT 0`);
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "firstName" TEXT DEFAULT ''`);
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "lastName" TEXT DEFAULT ''`);
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "email" TEXT DEFAULT ''`);
@@ -41,6 +43,7 @@ async function ensureBookingTable() {
 
   // Backfill any older rows that were created before these columns existed
   await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "checkIn" = COALESCE("checkIn", "createdAt") WHERE "checkIn" IS NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "totalPrice" = COALESCE("totalPrice", 0) WHERE "totalPrice" IS NULL`);
   await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "checkOut" = COALESCE("checkOut", "createdAt" + interval '1 day') WHERE "checkOut" IS NULL`);
   await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "guestCount" = COALESCE("guestCount", 1) WHERE "guestCount" IS NULL`);
   await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "firstName" = COALESCE("firstName", '') WHERE "firstName" IS NULL`);
@@ -54,7 +57,10 @@ async function ensureBookingTable() {
 export const BookingModel = {
   async create(data) {
     await ensureBookingTable();
-    return prisma.booking.create({ data });
+    return prisma.booking.create({ data: {
+      ...data,
+      totalPrice: data.totalPrice || 0,
+    } });
   },
   async cancel(id) {
     await ensureBookingTable();
