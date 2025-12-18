@@ -8,6 +8,7 @@ async function ensureBookingTable() {
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Booking" (
       "id" SERIAL PRIMARY KEY,
+      "bookingId" TEXT UNIQUE NOT NULL,
       "userId" INTEGER NOT NULL,
       "hotelId" TEXT NOT NULL,
       "roomId" TEXT,
@@ -30,6 +31,7 @@ async function ensureBookingTable() {
   `);
 
   // Ensure columns exist (run individually to avoid multi-statement errors in Supabase)
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "bookingId" TEXT`);
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkIn" TIMESTAMP WITH TIME ZONE`);
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkOut" TIMESTAMP WITH TIME ZONE`);
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "guestCount" INTEGER DEFAULT 1`);
@@ -42,6 +44,7 @@ async function ensureBookingTable() {
   await prisma.$executeRawUnsafe(`ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "bookingReference" TEXT UNIQUE`);
 
   // Backfill any older rows that were created before these columns existed
+  await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "bookingId" = CONCAT('BK-', UPPER(SUBSTRING(MD5(RANDOM()::TEXT), 1, 8))) WHERE "bookingId" IS NULL`);
   await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "checkIn" = COALESCE("checkIn", "createdAt") WHERE "checkIn" IS NULL`);
   await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "totalPrice" = COALESCE("totalPrice", 0) WHERE "totalPrice" IS NULL`);
   await prisma.$executeRawUnsafe(`UPDATE "Booking" SET "checkOut" = COALESCE("checkOut", "createdAt" + interval '1 day') WHERE "checkOut" IS NULL`);

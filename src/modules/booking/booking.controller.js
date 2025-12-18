@@ -40,7 +40,7 @@ export const BookingController = {
       return successResponse(
         res,
         'Booking created',
-        { bookingId: booking.id, bookingReference: booking.bookingReference, booking },
+        { bookingId: booking.bookingId, bookingReference: booking.bookingReference, booking },
         201
       );
     } catch (err) {

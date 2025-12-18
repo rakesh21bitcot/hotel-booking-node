@@ -2,6 +2,7 @@ import { BookingModel } from './booking.model.js';
 import { HotelService } from '../hotel/hotel.service.js';
 
 const validBookingFields = {
+  bookingId: 'string',
   userId: 'number',
   hotelId: 'string',
   roomId: 'string',
@@ -58,7 +59,7 @@ function validateBookingData(data) {
   }
 
   // Validate optional fields if provided
-  const optionalFields = ['status', 'paymentStatus', 'specialRequest', 'bookingReference'];
+  const optionalFields = ['bookingId', 'status', 'paymentStatus', 'specialRequest', 'bookingReference'];
   for (const field of optionalFields) {
     const value = data[field];
     if (value !== undefined && value !== null) {
@@ -130,6 +131,12 @@ function toIntOrThrow(value, fieldName) {
   return num;
 }
 
+function generateBookingId() {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `BK${timestamp}${random}`;
+}
+
 function generateBookingReference() {
   const nowPart = Date.now().toString(36).toUpperCase();
   const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -198,9 +205,11 @@ export const BookingService = {
     const roomIdStr = roomId ? String(roomId) : null;
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
+    const bookingId = generateBookingId();
     const bookingReference = generateBookingReference();
 
     const booking = await BookingModel.create({
+      bookingId,
       userId: userIdInt,
       hotelId: hotelIdStr,
       roomId: roomIdStr,
