@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { signinScheama, signupSchema, changePasswordSchema } from "./auth.validation.js";
 import { AuthController } from "./auth.controller.js";
+import { authenticate } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -27,7 +28,7 @@ router.post("/forgot-password", AuthController.forgotPassword);
 router.post("/reset-password", AuthController.resetPassword);
 
 // Change Password route
-router.post("/change-password", validate(changePasswordSchema), AuthController.changePassword);
+router.post("/change-password", authenticate, validate(changePasswordSchema), AuthController.changePassword);
 
 router.post("/logout", AuthController.logout);
 

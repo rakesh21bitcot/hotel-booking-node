@@ -65,7 +65,7 @@ export const AuthController = {
   
   async changePassword(req, res, next) {
     try {
-      const userId = req.body.userId;
+      const userId = req.user.id;
       const { currentPassword, newPassword, confirmPassword } = req.body;
       const result = await AuthService.changePassword(userId, currentPassword, newPassword, confirmPassword);
       return successResponse(res, result.message, {}, 200);
