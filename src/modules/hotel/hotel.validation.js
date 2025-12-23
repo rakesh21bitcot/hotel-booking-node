@@ -23,4 +23,15 @@ export const hotelFilterSchema = Joi.object({
   return value;
 }, "Hotel filter validation");
 
+export const reviewSchema = Joi.object({
+  bookingId: Joi.number().integer().required(),
+  rating: Joi.number().integer().min(1).max(5).required(),
+  comment: Joi.string().trim().min(1).max(1000).required(),
+});
+
+export const editReviewSchema = Joi.object({
+  rating: Joi.number().integer().min(1).max(5).required(),
+  comment: Joi.string().trim().min(1).max(1000).required(),
+});
+
 

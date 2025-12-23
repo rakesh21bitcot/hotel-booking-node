@@ -392,6 +392,189 @@ export const HotelService = {
 
     return paginate(sortedHotels, pageNumber, limitNumber);
   },
+
+  async hasUserReviewedBooking(userId, bookingId) {
+    try {
+      // Get all hotels (we need to check reviews across all hotels since reviews are stored per hotel)
+      const hotels = await prisma.$queryRawUnsafe('SELECT id, "reviews" FROM "hotels"');
+
+      for (const hotel of hotels) {
+        const reviews = safeParseJSON(hotel.reviews);
+        if (Array.isArray(reviews)) {
+          // Check if user has already reviewed this specific booking
+          const existingReview = reviews.find(review =>
+            review && review.userId === userId && review.bookingId === bookingId
+          );
+          if (existingReview) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    } catch (err) {
+      // If there's an error (e.g., reviews table doesn't exist), assume no review exists
+      return false;
+    }
+  },
+
+  async createReview(hotelId, userId, reviewData) {
+    try {
+      if (!hotelId) {
+        const err = new Error("Hotel ID is required");
+        err.name = "ValidationError";
+        err.status = 400;
+        throw err;
+      }
+
+      if (!reviewData.bookingId) {
+        const err = new Error("Booking ID is required");
+        err.name = "ValidationError";
+        err.status = 400;
+        throw err;
+      }
+
+      // Check if user has already reviewed this booking
+      const hasReviewed = await this.hasUserReviewedBooking(userId, reviewData.bookingId);
+      if (hasReviewed) {
+        const err = new Error("You have already reviewed this booking");
+        err.name = "ValidationError";
+        err.status = 409; // Conflict status code
+        throw err;
+      }
+
+      // Get the current hotel data
+      const [hotel] = await prisma.$queryRawUnsafe('SELECT * FROM "hotels" WHERE id = $1', hotelId);
+      if (!hotel) {
+        const err = new Error("Hotel not found");
+        err.name = "NotFoundError";
+        err.status = 404;
+        throw err;
+      }
+
+      const normalizedHotel = normalizeHotelRow(hotel);
+      const currentReviews = Array.isArray(normalizedHotel.reviews) ? normalizedHotel.reviews : [];
+      const currentReviewCount = normalizedHotel.reviewCount || 0;
+
+      // Generate review ID and create new review object
+      const reviewId = `rev-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const newReview = {
+        id: reviewId,
+        bookingId: reviewData.bookingId,
+        userId: userId,
+        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        user_name: reviewData.user_name,
+      };
+
+      // Add new review to the array
+      const updatedReviews = [...currentReviews, newReview];
+
+      // Calculate new average rating
+      const totalRating = updatedReviews.reduce((sum, review) => sum + review.rating, 0);
+      const newAverageRating = updatedReviews.length > 0 ? Number((totalRating / updatedReviews.length).toFixed(1)) : 0;
+
+      // Update hotel with new reviews, rating, and review count
+      const updateData = {
+        reviews: JSON.stringify(updatedReviews),
+        rating: newAverageRating,
+        reviewCount: currentReviewCount + 1,
+      };
+
+      await prisma.$queryRawUnsafe(
+        'UPDATE "hotels" SET "reviews" = $1::jsonb, "rating" = $2, "reviewCount" = $3 WHERE id = $4',
+        JSON.stringify(updatedReviews),
+        newAverageRating,
+        currentReviewCount + 1,
+        hotelId
+      )
+
+      return {
+        ...newReview,
+        hotelId,
+        userId,
+      };
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  async editReview(reviewId, userId, reviewData) {
+    try {
+      if (!reviewId) {
+        const err = new Error("Review ID is required");
+        err.name = "ValidationError";
+        err.status = 400;
+        throw err;
+      }
+
+      // Find the hotel that contains this review
+      const hotels = await prisma.$queryRawUnsafe('SELECT * FROM "hotels"');
+      let targetHotel = null;
+      let reviewIndex = -1;
+
+      for (const hotel of hotels) {
+        const normalizedHotel = normalizeHotelRow(hotel);
+        const reviews = Array.isArray(normalizedHotel.reviews) ? normalizedHotel.reviews : [];
+
+        const foundIndex = reviews.findIndex(review => review && review.id === reviewId);
+        if (foundIndex !== -1) {
+          targetHotel = normalizedHotel;
+          reviewIndex = foundIndex;
+          break;
+        }
+      }
+
+      if (!targetHotel || reviewIndex === -1) {
+        const err = new Error("Review not found");
+        err.name = "NotFoundError";
+        err.status = 404;
+        throw err;
+      }
+
+      // Check if the review belongs to the authenticated user
+      const existingReview = targetHotel.reviews[reviewIndex];
+      if (existingReview.userId !== userId) {
+        const err = new Error("You can only edit your own reviews");
+        err.name = "ForbiddenError";
+        err.status = 403;
+        throw err;
+      }
+
+      // Update the review
+      const updatedReview = {
+        ...existingReview,
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        date: new Date().toISOString().split('T')[0], // Update the date to show it was edited
+      };
+
+      // Update the reviews array
+      const updatedReviews = [...targetHotel.reviews];
+      updatedReviews[reviewIndex] = updatedReview;
+
+      // Calculate new average rating
+      const totalRating = updatedReviews.reduce((sum, review) => sum + review.rating, 0);
+      const newAverageRating = updatedReviews.length > 0 ? Number((totalRating / updatedReviews.length).toFixed(1)) : 0;
+
+      // Update hotel with new reviews and rating
+      await prisma.$queryRawUnsafe(
+        'UPDATE "hotels" SET "reviews" = $1::jsonb, "rating" = $2 WHERE id = $3',
+        JSON.stringify(updatedReviews),
+        newAverageRating,
+        targetHotel.id
+      );
+
+      return {
+        ...updatedReview,
+        hotelId: targetHotel.id,
+        userId,
+      };
+    } catch (err) {
+      throw err;
+    }
+  },
 };
 
 

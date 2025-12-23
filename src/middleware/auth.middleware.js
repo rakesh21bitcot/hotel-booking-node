@@ -17,7 +17,7 @@ export async function authenticate(req, res, next) {
       return errorResponse(res, MESSAGES.UNAUTHORIZED, 'AuthError', 401);
     }
 
-    req.user = { id: user.id, name: user.name, email: user.email };
+    req.user = { id: user.id, name: `${user.firstName} ${user.lastName}`.trim(), email: user.email };
     return next();
   } catch (err) {
     return errorResponse(res, MESSAGES.UNAUTHORIZED, 'AuthError', 401);

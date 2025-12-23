@@ -15,4 +15,12 @@ export const MESSAGES = {
   HOTEL_ROOMS_NOT_FOUND: 'Hotel rooms not found',
   ROOM_DETAILS_FOUND: 'Room details fetched successfully',
   ROOM_NOT_FOUND: 'Room not found',
+  BOOKING_NOT_FOUND: 'Booking not found',
+  REVIEW_CREATED: 'Review created successfully',
+  REVIEW_CREATE_ERROR: 'Error creating review',
+  REVIEW_VALIDATION_ERROR: 'Invalid review data',
+  REVIEW_UPDATED: 'Review updated successfully',
+  REVIEW_UPDATE_ERROR: 'Error updating review',
+  REVIEW_NOT_FOUND: 'Review not found',
+  REVIEW_UPDATE_FORBIDDEN: 'You can only edit your own reviews',
 };
