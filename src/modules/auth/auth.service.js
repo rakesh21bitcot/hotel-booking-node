@@ -45,8 +45,8 @@ export const AuthService = {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: email, // Replace with your email
-        pass: "ResetPassword@123", // Replace with your email password or app password
+        user: process.env.EMAIL_SERVICE_ID, // Replace with your email
+        pass: process.env.EMAIL_SERVICE_ID_PASSWORD, // Replace with your email password or app password
       },
     });
 
@@ -76,7 +76,7 @@ export const AuthService = {
     // Generate and store the reset token
     const resetToken = await UserModel.createPasswordResetToken(email);
     // Create the reset link
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}&email=${email}`;
+    const resetLink = `https://elite-stay-portal.vercel.app/reset-password?token=${resetToken}`;
 
     // Send the reset link to the user's email
     await this.sendResetPasswordEmail(email, resetLink);
