@@ -33,10 +33,8 @@ export const AuthController = {
   async forgotPassword(req, res, next) {
     try {
       const result = await AuthService.forgotPassword(req.body);
-      console.log(result)
-      return successResponse(res, result.message, {}, 200);
+      return successResponse(res, MESSAGES.PASSWORD_RESET_REQUESTED, {}, 200);
     } catch (err) {
-      console.log(err)
       return next(err);
     }
   },
@@ -45,7 +43,7 @@ export const AuthController = {
   async resetPassword(req, res, next) {
     try {
       const result = await AuthService.resetPassword(req.body);
-      return successResponse(res, result.message, {}, 200);
+      return successResponse(res, MESSAGES.PASSWORD_RESET_SUCCESS, {}, 200);
     } catch (err) {
       return next(err);
     }

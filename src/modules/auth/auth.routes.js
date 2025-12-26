@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { signinScheama, signupSchema, changePasswordSchema } from "./auth.validation.js";
+import { signinScheama, signupSchema, changePasswordSchema, resetPasswordSchema } from "./auth.validation.js";
 import { AuthController } from "./auth.controller.js";
 import { authenticate } from "../../middleware/auth.middleware.js";
 
@@ -25,7 +25,7 @@ router.post("/signin", validate(signinScheama), AuthController.signin);
 router.post("/forgot-password", AuthController.forgotPassword);
 
 // Reset Password route
-router.post("/reset-password", AuthController.resetPassword);
+router.post("/reset-password", validate(resetPasswordSchema), AuthController.resetPassword);
 
 // Change Password route
 router.post("/change-password", authenticate, validate(changePasswordSchema), AuthController.changePassword);

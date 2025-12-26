@@ -86,16 +86,50 @@ export const AuthService = {
 
   // Reset password: Verify token and update the user's password
   async resetPassword({ email, token, newPassword }) {
-    const tokenRecord = await UserModel.verifyResetToken(email, token);
-    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    try {
+      // Validate required parameters
+      if (!email || !token || !newPassword) {
+        const err = new Error("Email, token, and new password are required");
+        err.name = "ValidationError";
+        err.status = 400;
+        throw err;
+      }
 
-    if (tokenRecord) {
+      // Validate password strength
+      if (newPassword.length < 6) {
+        const err = new Error("Password must be at least 6 characters long");
+        err.name = "ValidationError";
+        err.status = 400;
+        throw err;
+      }
+
+      const tokenRecord = await UserModel.verifyResetToken(email, token);
+
+      if (!tokenRecord) {
+        const err = new Error("Invalid or expired reset token");
+        err.name = "ValidationError";
+        err.status = 400;
+        throw err;
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
       await UserModel.updateByEmail(email, hashedPassword);
       await UserModel.deleteResetToken(email, token);
-      return { message: "Password successfully reset" };
-    }
 
-    return { message: "Nikle" };
+      return { message: "Password successfully reset" };
+    } catch (err) {
+      // Re-throw validation errors
+      if (err.name === "ValidationError") {
+        throw err;
+      }
+
+      // Handle other errors (database errors, etc.)
+      const error = new Error("Failed to reset password. Please try again.");
+      error.name = "InternalServerError";
+      error.status = 500;
+      throw error;
+    }
   },
 
   /**

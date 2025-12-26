@@ -23,4 +23,8 @@ export const MESSAGES = {
   REVIEW_UPDATE_ERROR: 'Error updating review',
   REVIEW_NOT_FOUND: 'Review not found',
   REVIEW_UPDATE_FORBIDDEN: 'You can only edit your own reviews',
+  PASSWORD_RESET_REQUESTED: 'Password reset link sent to your email',
+  PASSWORD_RESET_SUCCESS: 'Password successfully reset',
+  PASSWORD_RESET_FAILED: 'Failed to reset password',
+  INVALID_RESET_TOKEN: 'Invalid or expired reset token',
 };
