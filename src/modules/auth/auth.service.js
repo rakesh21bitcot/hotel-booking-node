@@ -76,7 +76,7 @@ export const AuthService = {
     // Generate and store the reset token
     const resetToken = await UserModel.createPasswordResetToken(email);
     // Create the reset link
-    const resetLink = `https://elite-stay-portal.vercel.app/reset-password?token=${resetToken}`;
+    const resetLink = `https://elite-stay-portal.vercel.app/reset-password?token=${resetToken}&email=${email}`;
 
     // Send the reset link to the user's email
     await this.sendResetPasswordEmail(email, resetLink);
